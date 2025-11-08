@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link , useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
 import toast from 'react-hot-toast';
@@ -66,9 +66,16 @@ const AdminOrders = () => {
     <div className="admin-orders-page">
       <div className="container">
         <h1 className="page-title">Manage Orders</h1>
-        
-        <div className="orders-list">
 
+          {
+            <Link to="/admin">
+              <button className='btn btn-pink' style={{marginBottom:'2rem'}}>
+                Back
+              </button>    
+            </Link>
+          }
+
+        <div className="orders-list">
         {
           orders.length === 0 ? (
             <div className="no-orders">
@@ -377,7 +384,7 @@ const AdminOrders = () => {
           font-weight: bold;
           transition: all 0.3s ease;
         }
-
+      
         .btn-close:hover {
           background-color: var(--color-gray-400);
         }

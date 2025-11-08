@@ -43,7 +43,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+    if ((product.sizes && product.sizes.length > 0) && !selectedSize) {
       toast.error('Please select a size');
       return;
     }
@@ -99,7 +99,7 @@ const ProductDetail = () => {
           <div className="product-images">
             <div className="main-image">
               <img 
-                src={product.images && product.images[activeImage]?.url || '/placeholder.jpg'} 
+                src={(product.images && product.images[activeImage]?.url) || '/placeholder.jpg'} 
                 alt={product.name}
               />
             </div>

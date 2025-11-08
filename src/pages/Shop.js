@@ -100,7 +100,7 @@ const Shop = () => {
             <div className="spinner"></div>
           </div>
         ) : products.length > 0 ? (
-          <div className="products-grid">
+          <div className="products-grid container">
             {products.map(product => (
               <ProductCard key={product._id} product={product} />
             ))}
@@ -116,7 +116,6 @@ const Shop = () => {
       <style jsx>{`
         .shop-page {
           min-height: 100vh;
-          padding-top: 0.45rem;
         }
 
         .shop-header {

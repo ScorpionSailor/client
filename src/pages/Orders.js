@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
+import toast from 'react-hot-toast';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -21,6 +22,24 @@ const Orders = () => {
       console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancel = async (orderId) => {
+    const ok = window.confirm('Are you sure you want to cancel this order?');
+    if (!ok) return;
+
+    try {
+      const response = await api.put(`/orders/${orderId}/cancel`);
+      toast.success(response.data.message || 'Order cancelled');
+      // Update local state with returned order
+  const updatedOrder = response.data.order;
+  setOrders(prev => prev.map(o => (o._id === updatedOrder._id ? updatedOrder : o)));
+      // Fallback: refetch orders if mapping failed to update
+      setTimeout(fetchOrders, 400);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to cancel order');
+      console.error('Cancel error:', error);
     }
   };
 
@@ -73,6 +92,11 @@ const Orders = () => {
                 <div className="order-total">
                   <strong>Total: ₹{order.total}</strong>
                 </div>
+                {['pending', 'processing'].includes(order.orderStatus) && !order.cancelledByUser && (
+                  <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+                    <button className="btn-cancel" onClick={() => handleCancel(order._id)}>Cancel Order</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -133,6 +157,10 @@ const Orders = () => {
         .status-badge.delivered {
           background-color: #4CAF50;
         }
+   
+        .status-badge.cancelled {
+          background-color: var(--color-hot-pink);
+        }
 
         .order-item {
           display: flex;
@@ -146,6 +174,19 @@ const Orders = () => {
           padding-top: 1rem;
           border-top: 2px solid var(--color-black);
           text-align: right;
+        }
+        .btn-cancel {
+          padding: 0.75rem 1.25rem;
+          background-color: var(--color-hot-pink);
+          color: var(--color-white);
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .btn-cancel:hover {
+          opacity: 0.9;
         }
       `}</style>
     </div>

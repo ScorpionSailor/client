@@ -78,22 +78,46 @@ const AdminDashboard = () => {
         <h1 className="admin-title">Admin Dashboard</h1>
         
         {stats && (
-          <div className="stats-grid">
-            <div className="stat-card">
-              <h3>Total Products</h3>
-              <p>{stats.totalProducts}</p>
+          <div>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <h3>Total Products</h3>
+                <p>{stats.totalProducts}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Total Orders</h3>
+                <p>{stats.totalOrders}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Total Users</h3>
+                <p>{stats.totalUsers}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Orders Cancelled</h3>
+                <p>{stats.canceledOrdersCount || 0}</p>
+                <button className="view-all-btn" style={{ marginTop: '1rem' }} onClick={() => navigate('/admin/canceled-orders')}>View Cancelled</button>
+              </div>
             </div>
-            <div className="stat-card">
-              <h3>Total Orders</h3>
-              <p>{stats.totalOrders}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Total Users</h3>
-              <p>{stats.totalUsers}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Total Revenue</h3>
-              <p>₹{stats.totalRevenue}</p>
+
+            <div className="revenue-section">
+              <h2>Revenue Breakdown</h2>
+              <div className="revenue-grid">
+                <div className="stat-card revenue-card">
+                  <h3>COD Revenue</h3>
+                  <p>₹{stats.codRevenue.toFixed(2)}</p>
+                  <small>(from delivered orders)</small>
+                </div>
+                <div className="stat-card revenue-card">
+                  <h3>Online Payments</h3>
+                  <p>₹{stats.onlineRevenue.toFixed(2)}</p>
+                  <small>(from completed payments)</small>
+                </div>
+                <div className="stat-card revenue-card total">
+                  <h3>Total Revenue</h3>
+                  <p>₹{stats.totalRevenue.toFixed(2)}</p>
+                  <small>(COD + Online)</small>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -125,7 +149,7 @@ const AdminDashboard = () => {
 
         <div className="products-section">
           <h2>Products</h2>
-          <button className='product-btn' onClick={AddProduct}>+ Add Product</button>
+          <button className='product-btn' style={{marginBottom:'2rem'}} onClick={AddProduct}>+ Add Product</button>
           <div className="products-table">
             {products.map(product => (
               <div key={product._id} className="product-row">
@@ -165,6 +189,38 @@ const AdminDashboard = () => {
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 2rem;
           margin-bottom: 4rem;
+        }
+
+        .revenue-section {
+          margin-bottom: 4rem;
+        }
+
+        .revenue-section h2 {
+          margin-bottom: 2rem;
+          color: var(--color-gray-700);
+        }
+
+        .revenue-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 2rem;
+        }
+
+        .revenue-card small {
+          display: block;
+          color: var(--color-gray-500);
+          font-size: 0.875rem;
+          margin-top: 0.5rem;
+        }
+
+        .revenue-card.total {
+          background-color: var(--color-black);
+        }
+
+        .revenue-card.total h3,
+        .revenue-card.total p,
+        .revenue-card.total small {
+          color: var(--color-neon-green);
         }
 
         .dashboard-section {

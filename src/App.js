@@ -24,6 +24,7 @@ import FAQ from './pages/FAQ';
 import AdminDashboard from './pages/AdminDashboard';
 import AddProduct from './pages/AddProduct';
 import AdminOrders from './pages/AdminOrders';
+import AdminCanceledOrders from './pages/AdminCanceledOrders';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import RefundPolicy from './pages/RefundPolicy';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/shipping" element={<ShippingPolicy />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/canceled-orders" element={<AdminCanceledOrders />} />
                 <Route path="/admin/products/new" element={<AddProduct />} />
               </Routes>
             </main>

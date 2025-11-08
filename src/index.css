@@ -193,7 +193,7 @@ code {
 /* Responsive */
 @media (max-width: 768px) {
   .container {
-    padding: 0 15px;
+    padding: 10px 15px;
   }
   
   .btn {
@@ -214,6 +214,7 @@ body::before {
   position: fixed;
   inset: 0;
   background: url('../public/bg-logo.png') center center no-repeat;
+  background-color:var(--color-gray-500);
   background-size: min(70vw, 900px); /* scales nicely on large screens */
   opacity: var(--bg-logo-opacity);
   pointer-events: none; /* keep UI interactive */
