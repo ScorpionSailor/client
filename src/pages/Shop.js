@@ -71,15 +71,15 @@ const Shop = () => {
             <h3>Type</h3>
             <select name="type" value={filters.type} onChange={handleFilterChange}>
               <option value="all">All Types</option>
-              <option value="Oversized-T-Shirts">Oversized T-Shirts</option>
+              <option value="oversized-t-shirts">Oversized T-Shirts</option>
               <option value="hoodies">Hoodies</option>
               <option value="oversized">Oversized</option>
-              <option value="crop-tops">Crop Tops</option>
+              <option value="crop-tops">Crop-tops</option>
               <option value="tank-tops">Tanks-tops</option> 
-              <option value="sweatshirts">sweatshirts</option> 
-              <option value="Track-pants">Track pants</option>  
-              <option value="Denim-jacket">Denim jacket</option>  
-              <option value="tote-bag">tote bag</option>  
+              <option value="sweatshirts">Sweatshirts</option> 
+              <option value="track-pants">Track pants</option>  
+              <option value="denim-jacket">Denim jacket</option>  
+              <option value="tote-bag">Tote bag</option>  
             </select>
           </div>
 
