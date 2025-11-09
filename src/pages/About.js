@@ -5,7 +5,7 @@ const About = () => {
     <div className="about-page">
       <div className="about-hero">
         <h1>About Maytastic</h1>
-        <p>"Why fit in if you are born to stand out."</p>
+        <p>"Why fit in if you were born to stand out."</p>
       </div>
 
       <div className="container">
