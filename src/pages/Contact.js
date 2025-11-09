@@ -23,12 +23,12 @@ const Contact = () => {
             
             <div className="contact-item">
               <h3>📱 Phone</h3>
-              <p>+91 98765 43210</p>
+              <p>+91 77382 67309</p>
             </div>
             
             <div className="contact-item">
               <h3>💬 WhatsApp</h3>
-              <a href="https://wa.me/PHONE_NUMBER">Chat with us on WhatsApp</a>
+              <a href="https://wa.me/917738267309">Chat with us on WhatsApp</a>
             </div>
           </div>
 
@@ -37,7 +37,7 @@ const Contact = () => {
             <form className="contact-form" onSubmit={(e) => {
               e.preventDefault();
               // Replace PHONE_NUMBER with your WhatsApp number (with country code, no spaces or special chars)
-              const phoneNumber = 'PHONE_NUMBER';
+              const phoneNumber = '917738267309';
               const message = `*New Contact Form Message*\n\nName: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`;
               const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
               window.open(whatsappUrl, '_blank');

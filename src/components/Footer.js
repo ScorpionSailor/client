@@ -58,8 +58,8 @@ const Footer = () => {
           <h4>Contact</h4>
           <ul>
             <li>📧 support@maytastic.com</li>
-            <li>📱 +91 98765 43210</li>
-            <li>💬 <a href="https://wa.me/919876543210">WhatsApp</a></li>
+            <li>📱 +91 7738267309</li>
+            <li>💬 <a href="https://wa.me/917738267309">WhatsApp</a></li>
           </ul>
         </div>
       </div>
