@@ -16,7 +16,13 @@ const Shop = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [filters, sortBy]);
+  }, [JSON.stringify(filters), sortBy]);
+
+  useEffect(() => {
+    const delay = setTimeout(() => fetchProducts(), 500);
+    return () => clearTimeout(delay);
+  }, [JSON.stringify(filters), sortBy]);
+
 
   const fetchProducts = async () => {
     try {
@@ -65,11 +71,15 @@ const Shop = () => {
             <h3>Type</h3>
             <select name="type" value={filters.type} onChange={handleFilterChange}>
               <option value="all">All Types</option>
-              <option value="tshirt">T-Shirts</option>
-              <option value="hoodie">Hoodies</option>
+              <option value="Oversized-T-Shirts">Oversized T-Shirts</option>
+              <option value="hoodies">Hoodies</option>
               <option value="oversized">Oversized</option>
-              <option value="crop-top">Crop Tops</option>
-              <option value="tank">Tanks</option>
+              <option value="crop-tops">Crop Tops</option>
+              <option value="tank-tops">Tanks-tops</option> 
+              <option value="sweatshirts">sweatshirts</option> 
+              <option value="Track-pants">Track pants</option>  
+              <option value="Denim-jacket">Denim jacket</option>  
+              <option value="tote-bag">tote bag</option>  
             </select>
           </div>
 

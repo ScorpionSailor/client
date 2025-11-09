@@ -27,7 +27,7 @@ const AddProduct = () => {
   const [imageUrls, setImageUrls] = useState(['']);
   const [imageFiles, setImageFiles] = useState([null]);
 
-  if (!isAdmin()) {
+  if (!isAdmin) {
     return (
       <div className="container" style={{ padding: '3rem 0' }}>
         <p>Access denied</p>
@@ -80,14 +80,14 @@ const AddProduct = () => {
     if (!file) return toast.error('Choose a file first');
 
     try {
-      toast.loading('Uploading image...');
+      const toastId = toast.loading('Uploading image...');
       const url = await uploadToCloudinary(file);
       setImageUrls((prev) => {
         const next = [...prev];
         next[index] = url;
         return next;
       });
-      toast.dismiss();
+      toast.dismiss(toastId);
       toast.success('Image uploaded');
     } catch (err) {
       toast.dismiss();
@@ -107,7 +107,7 @@ const AddProduct = () => {
       name: form.name,
       description: form.description,
       price: Number(form.price),
-      category: form.category.toLowerCase(),
+      category: form.category?.toLowerCase() || '',
       type: form.type,
       sizes: parseList(form.sizes).map((size) => ({ size })),
       colors: parseList(form.colors).map((name) => ({ name })),
@@ -155,7 +155,18 @@ const AddProduct = () => {
             </div>
             <div className="form-row">
               <label>Type</label>
-              <input name="type" value={form.type} onChange={handleChange} placeholder="e.g., T-Shirt" />
+              <select name="type" value={form.type} onChange={handleChange}>
+                <option value="all">All Types</option>
+                <option value="Oversized-T-Shirts">Oversized T-Shirts</option>
+                <option value="hoodies">Hoodies</option>
+                <option value="oversized">Oversized</option>
+                <option value="crop-tops">Crop Tops</option>
+                <option value="tank-tops">Tanks-tops</option> 
+                <option value="sweatshirts">sweatshirts</option> 
+                <option value="track-pants">Track pants</option>  
+                <option value="denim-jacket">Denim jacket</option>  
+                <option value="tote-bag">tote bag</option>  
+              </select>
             </div>
           </div>
           <div className="form-row">
