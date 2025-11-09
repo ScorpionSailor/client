@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
+import { uploadToCloudinary } from '../utils/uploadCloudinary';
 import toast from 'react-hot-toast';
 
 const AddProduct = () => {
@@ -24,6 +25,7 @@ const AddProduct = () => {
     newArrival: false,
   });
   const [imageUrls, setImageUrls] = useState(['']);
+  const [imageFiles, setImageFiles] = useState([null]);
 
   if (!isAdmin()) {
     return (
@@ -55,12 +57,43 @@ const AddProduct = () => {
     });
   };
 
+  const handleFileChange = (index, file) => {
+    setImageFiles((prev) => {
+      const next = [...prev];
+      next[index] = file;
+      return next;
+    });
+  };
+
   const addImageField = () => {
     setImageUrls((prev) => [...prev, '']);
+    setImageFiles((prev) => [...prev, null]);
   };
 
   const removeImageField = (index) => {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadFile = async (index) => {
+    const file = imageFiles[index];
+    if (!file) return toast.error('Choose a file first');
+
+    try {
+      toast.loading('Uploading image...');
+      const url = await uploadToCloudinary(file);
+      setImageUrls((prev) => {
+        const next = [...prev];
+        next[index] = url;
+        return next;
+      });
+      toast.dismiss();
+      toast.success('Image uploaded');
+    } catch (err) {
+      toast.dismiss();
+      console.error('Upload error:', err);
+      toast.error(err.message || 'Upload failed');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -142,6 +175,15 @@ const AddProduct = () => {
                   onChange={(e) => handleImageChange(idx, e.target.value)}
                   placeholder="https://..."
                 />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(idx, e.target.files[0])}
+                  style={{ marginLeft: '8px' }}
+                />
+                <button type="button" className="btn small" onClick={() => handleUploadFile(idx)}>
+                  Upload
+                </button>
                 <button
                   type="button"
                   className="btn small danger"
