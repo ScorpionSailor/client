@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="footer-container">
         <div className="footer-section">
           <h3 className="footer-logo">MAYTASTIC</h3>
-          <p className="footer-tagline">"Why fit in if you are born to stand out."</p>
+          <p className="footer-tagline">"Why fit in if you were born to stand out."</p>
           <div className="footer-social">
             <a href="https://instagram.com/maytastic" target="_blank" rel="noopener noreferrer" className="social-icon">
               <IoLogoInstagram />

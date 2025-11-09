@@ -36,7 +36,7 @@ const Home = () => {
           <h1 className="hero-title">
             <span className="hero-highlight">WHY FIT IN</span>
             <br />
-            if you are born to
+            if you were born to
             <br />
             <span className="hero-highlight neon">STAND OUT</span>
           </h1>
@@ -77,9 +77,9 @@ const Home = () => {
       <section className="brand-section">
         <div className="container">
           <div className="brand-content">
-            <h2>For the Bold. For the Different.</h2>
+            <h2>This is the brand for people who dare to stand out</h2>
             <p>
-              Maytastic is not just a clothing brand; it's a movement. 
+              Maytastic is not just a clothing brand, it's a movement. 
               We create streetwear for those who refuse to blend in, 
               for the rebels, the dreamers, and the fearless.
             </p>
