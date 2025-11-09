@@ -277,6 +277,7 @@ const AddProduct = () => {
         .admin-title { font-family: var(--font-bold); font-size: 32px; margin-bottom: 2rem; }
         .product-form { background: var(--color-white); padding: 2rem; border-radius: 10px; box-shadow: var(--shadow-md); }
         .form-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .form-row select, { width: 100%; padding: 10px; border: 2px solid var(--color-gray-300); border-radius: 5px; font-size: 16px; background-color: var(--color-white); transition: border-color 0.3s ease;}
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
         label { color: var(--color-gray-600); font-weight: 600; }
         input, textarea { border: 1px solid var(--color-gray-200); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
