@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 // Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import Home from './pages/Home';
@@ -36,6 +37,7 @@ function App() {
       <CartProvider>
         <Router>
           <div className="App">
+            <ScrollToTop behavior='auto' />
             <Navbar />
             <main>
               <Routes>
@@ -66,7 +68,7 @@ function App() {
             <Toaster 
               position="top-right"
               toastOptions={{
-                duration: 3000,
+                duration: 1500,
                 style: {
                   background: '#2D2D2D',
                   color: '#39FF14',
