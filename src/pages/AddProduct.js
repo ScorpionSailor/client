@@ -26,8 +26,6 @@ const AddProduct = () => {
   const [colorEntries, setColorEntries] = useState([
     { name: '', hex: '', images: [{ url: '', file: null }] }
   ]);
-  const [imageUrls, setImageUrls] = useState(['']);
-  const [imageFiles, setImageFiles] = useState([null]);
 
   if (!isAdmin) {
     return (
@@ -150,53 +148,6 @@ const AddProduct = () => {
     }
   };
 
-  const handleImageChange = (index, value) => {
-    setImageUrls((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
-    });
-  };
-
-  const handleFileChange = (index, file) => {
-    setImageFiles((prev) => {
-      const next = [...prev];
-      next[index] = file;
-      return next;
-    });
-  };
-
-  const addImageField = () => {
-    setImageUrls((prev) => [...prev, '']);
-    setImageFiles((prev) => [...prev, null]);
-  };
-
-  const removeImageField = (index) => {
-    setImageUrls((prev) => prev.filter((_, i) => i !== index));
-    setImageFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleUploadFile = async (index) => {
-    const file = imageFiles[index];
-    if (!file) return toast.error('Choose a file first');
-
-    try {
-      const toastId = toast.loading('Uploading image...');
-      const url = await uploadToCloudinary(file);
-      setImageUrls((prev) => {
-        const next = [...prev];
-        next[index] = url;
-        return next;
-      });
-      toast.dismiss(toastId);
-      toast.success('Image uploaded');
-    } catch (err) {
-      toast.dismiss();
-      console.error('Upload error:', err);
-      toast.error(err.message || 'Upload failed');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.price) {
@@ -252,6 +203,32 @@ const AddProduct = () => {
     const totalVariantStock = sizesPayload.reduce((sum, entry) => sum + entry.stock, 0);
     const baseStock = sizesPayload.length ? totalVariantStock : Number(form.stock) || 0;
 
+    const colorsPayload = trimmedColors.map((entry) => {
+      const images = entry.images
+        .filter((img) => img.url)
+        .map((img) => ({
+          url: img.url
+        }));
+
+      const payloadEntry = {
+        name: entry.name,
+        images
+      };
+
+      if (entry.hex) {
+        payloadEntry.hex = entry.hex;
+      }
+
+      return payloadEntry;
+    });
+
+    const galleryImages = colorsPayload.flatMap((color) =>
+      color.images.map((img) => ({
+        url: img.url,
+        ...(color.name ? { color: color.name } : {})
+      }))
+    );
+
     const payload = {
       name: form.name,
       description: form.description,
@@ -259,16 +236,8 @@ const AddProduct = () => {
       category: form.category?.toLowerCase() || '',
       type: form.type,
       sizes: sizesPayload,
-      colors: trimmedColors.map((entry) => ({
-        name: entry.name,
-        hex: entry.hex || undefined,
-        images: entry.images
-          .filter((img) => img.url)
-          .map((img) => ({
-            url: img.url
-          }))
-      })),
-      images: imageUrls.map((url) => url.trim()).filter(Boolean).map((url) => ({ url })),
+      colors: colorsPayload,
+      images: galleryImages,
       inStock: form.inStock,
       stock: baseStock,
       featured: form.featured,
@@ -437,38 +406,7 @@ const AddProduct = () => {
               + Add Color Variant
             </button>
           </div>
-          <div className="form-row">
-            <label>Image URLs</label>
-            {imageUrls.map((url, idx) => (
-              <div className="image-row" key={idx}>
-                <input
-                  value={url}
-                  onChange={(e) => handleImageChange(idx, e.target.value)}
-                  placeholder="https://..."
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(idx, e.target.files[0])}
-                  style={{ marginLeft: '8px' }}
-                />
-                <button type="button" className="btn small" onClick={() => handleUploadFile(idx)}>
-                  Upload
-                </button>
-                <button
-                  type="button"
-                  className="btn small danger"
-                  onClick={() => removeImageField(idx)}
-                  disabled={imageUrls.length === 1}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-            <button type="button" className="btn small secondary" onClick={addImageField}>
-              + Add Image URL
-            </button>
-          </div>
+
           <div className="form-grid">
             <div className="form-row">
               <label>Stock Quantity</label>
@@ -559,8 +497,6 @@ const AddProduct = () => {
         .btn.danger { background: var(--color-hot-pink); color: var(--color-white); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn:not(:disabled):hover { transform: translateY(-1px); opacity: 0.95; }
-        .image-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
-        .image-row .btn { padding: 8px 12px; }
         .checkbox-group { display: flex; gap: 20px; flex-wrap: wrap; }
         .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .checkbox-label input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; }
