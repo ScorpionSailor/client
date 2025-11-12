@@ -215,7 +215,7 @@ const AdminDashboard = () => {
               <div className="stat-card">
                 <h3>Total Users</h3>
                 <p>{stats.totalUsers}</p>
-                <button className='view-all-btn' style={{ marginTop: '1rem' }} onClick={()=> navigate('/admin/users-details')}></button>
+                <button className='view-all-btn' style={{ marginTop: '1rem' }} onClick={()=> navigate('/admin/users-details')}>View All Users</button>
               </div>
               <div className="stat-card">
                 <h3>Orders Cancelled</h3>
