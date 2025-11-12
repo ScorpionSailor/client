@@ -16,7 +16,6 @@ const AddProduct = () => {
     price: '',
     category: '',
     type: '',
-    colors: '', // comma-separated names, e.g., red,blue
     inStock: true,
     stock: 0,
     featured: false,
@@ -24,6 +23,9 @@ const AddProduct = () => {
     newArrival: false,
   });
   const [sizeEntries, setSizeEntries] = useState([{ size: '', stock: '' }]);
+  const [colorEntries, setColorEntries] = useState([
+    { name: '', hex: '', images: [{ url: '', file: null }] }
+  ]);
   const [imageUrls, setImageUrls] = useState(['']);
   const [imageFiles, setImageFiles] = useState([null]);
 
@@ -62,11 +64,91 @@ const AddProduct = () => {
     setSizeEntries((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const parseList = (value) =>
-    value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+  const handleColorEntryChange = (index, field, value) => {
+    setColorEntries((prev) => {
+      const next = [...prev];
+      next[index] = {
+        ...next[index],
+        [field]: value
+      };
+      return next;
+    });
+  };
+
+  const handleColorImageChange = (colorIndex, imageIndex, value) => {
+    setColorEntries((prev) => {
+      const next = [...prev];
+      const images = [...next[colorIndex].images];
+      images[imageIndex] = { ...images[imageIndex], url: value };
+      next[colorIndex] = { ...next[colorIndex], images };
+      return next;
+    });
+  };
+
+  const handleColorImageFileChange = (colorIndex, imageIndex, file) => {
+    setColorEntries((prev) => {
+      const next = [...prev];
+      const images = [...next[colorIndex].images];
+      images[imageIndex] = { ...images[imageIndex], file };
+      next[colorIndex] = { ...next[colorIndex], images };
+      return next;
+    });
+  };
+
+  const addColorEntry = () => {
+    setColorEntries((prev) => [
+      ...prev,
+      { name: '', hex: '', images: [{ url: '', file: null }] }
+    ]);
+  };
+
+  const removeColorEntry = (index) => {
+    setColorEntries((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addColorImageField = (colorIndex) => {
+    setColorEntries((prev) => {
+      const next = [...prev];
+      const images = [...next[colorIndex].images, { url: '', file: null }];
+      next[colorIndex] = { ...next[colorIndex], images };
+      return next;
+    });
+  };
+
+  const removeColorImageField = (colorIndex, imageIndex) => {
+    setColorEntries((prev) => {
+      const next = [...prev];
+      const images = next[colorIndex].images.filter((_, idx) => idx !== imageIndex);
+      next[colorIndex] = {
+        ...next[colorIndex],
+        images: images.length ? images : [{ url: '', file: null }]
+      };
+      return next;
+    });
+  };
+
+  const handleUploadColorImage = async (colorIndex, imageIndex) => {
+    const file = colorEntries[colorIndex]?.images?.[imageIndex]?.file;
+    if (!file) return toast.error('Choose a file first');
+
+    try {
+      const toastId = toast.loading('Uploading image...');
+      const url = await uploadToCloudinary(file);
+      toast.dismiss(toastId);
+      setColorEntries((prev) => {
+        const next = [...prev];
+        const images = [...next[colorIndex].images];
+        images[imageIndex] = { url, file: null };
+        next[colorIndex] = { ...next[colorIndex], images };
+        return next;
+      });
+      toast.success('Image uploaded');
+    } catch (err) {
+      toast.dismiss();
+      console.error('Upload error:', err);
+      toast.error(err.message || 'Upload failed');
+    }
+  };
 
   const handleImageChange = (index, value) => {
     setImageUrls((prev) => {
@@ -148,6 +230,25 @@ const AddProduct = () => {
       stock: entry.stock
     }));
 
+    const trimmedColors = colorEntries
+      .map((entry) => ({
+        name: entry.name.trim(),
+        hex: entry.hex.trim(),
+        images: (entry.images || []).map((img) => ({
+          url: (img.url || '').trim()
+        }))
+      }))
+      .filter((entry) => entry.name || entry.hex || entry.images.some((img) => img.url));
+
+    const hasInvalidColor = trimmedColors.some(
+      (entry) => !entry.name || !entry.images.some((img) => img.url)
+    );
+
+    if (hasInvalidColor) {
+      toast.error('Each color variant needs a name and at least one image URL');
+      return;
+    }
+
     const totalVariantStock = sizesPayload.reduce((sum, entry) => sum + entry.stock, 0);
     const baseStock = sizesPayload.length ? totalVariantStock : Number(form.stock) || 0;
 
@@ -158,7 +259,15 @@ const AddProduct = () => {
       category: form.category?.toLowerCase() || '',
       type: form.type,
       sizes: sizesPayload,
-      colors: parseList(form.colors).map((name) => ({ name })),
+      colors: trimmedColors.map((entry) => ({
+        name: entry.name,
+        hex: entry.hex || undefined,
+        images: entry.images
+          .filter((img) => img.url)
+          .map((img) => ({
+            url: img.url
+          }))
+      })),
       images: imageUrls.map((url) => url.trim()).filter(Boolean).map((url) => ({ url })),
       inStock: form.inStock,
       stock: baseStock,
@@ -251,8 +360,82 @@ const AddProduct = () => {
             </button>
           </div>
           <div className="form-row">
-            <label>Colors (comma separated)</label>
-            <input name="colors" value={form.colors} onChange={handleChange} placeholder="red,blue" />
+            <label>Color Variants & Images</label>
+            <div className="color-list">
+              {colorEntries.map((color, colorIdx) => (
+                <div className="color-card" key={`color-${colorIdx}`}>
+                  <div className="color-header">
+                    <div className="color-fields">
+                      <input
+                        value={color.name}
+                        onChange={(e) => handleColorEntryChange(colorIdx, 'name', e.target.value)}
+                        placeholder="Color name (e.g., Red)"
+                      />
+                      <input
+                        value={color.hex}
+                        onChange={(e) => handleColorEntryChange(colorIdx, 'hex', e.target.value)}
+                        placeholder="#HEX (optional)"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="btn small danger"
+                      onClick={() => removeColorEntry(colorIdx)}
+                      disabled={colorEntries.length === 1}
+                      aria-label="Remove color variant"
+                    >
+                      Remove Color
+                    </button>
+                  </div>
+                  <div className="color-image-grid">
+                    {color.images.map((img, imageIdx) => (
+                      <div className="color-image-row" key={`color-${colorIdx}-image-${imageIdx}`}>
+                        <input
+                          value={img.url}
+                          onChange={(e) =>
+                            handleColorImageChange(colorIdx, imageIdx, e.target.value)
+                          }
+                          placeholder="https://... (image URL)"
+                        />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleColorImageFileChange(colorIdx, imageIdx, e.target.files[0])
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="btn small"
+                          onClick={() => handleUploadColorImage(colorIdx, imageIdx)}
+                        >
+                          Upload
+                        </button>
+                        <button
+                          type="button"
+                          className="btn small danger"
+                          onClick={() => removeColorImageField(colorIdx, imageIdx)}
+                          disabled={color.images.length === 1}
+                          aria-label="Remove color image"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn small secondary"
+                    onClick={() => addColorImageField(colorIdx)}
+                  >
+                    + Add Image
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button type="button" className="btn small secondary" onClick={addColorEntry}>
+              + Add Color Variant
+            </button>
           </div>
           <div className="form-row">
             <label>Image URLs</label>
@@ -362,6 +545,12 @@ const AddProduct = () => {
         textarea { min-height: 100px; resize: vertical; }
         .size-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
         .size-row { display: grid; grid-template-columns: 1fr 150px auto; gap: 10px; align-items: center; }
+        .color-list { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 1rem; }
+        .color-card { background: var(--color-gray-100); padding: 1rem; border-radius: 10px; display: flex; flex-direction: column; gap: 1rem; }
+        .color-header { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        .color-fields { display: grid; grid-template-columns: minmax(160px, 1fr) 160px; gap: 10px; width: 100%; }
+        .color-image-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+        .color-image-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; }
         .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px; }
         .btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: transform 0.2s ease, opacity 0.2s ease; }
         .btn.primary { background: var(--color-neon-green); color: var(--color-black); }
@@ -379,6 +568,10 @@ const AddProduct = () => {
         @media (max-width: 768px) {
           .size-row { grid-template-columns: 1fr 1fr; gap: 6px; }
           .size-row .btn { grid-column: span 2; justify-self: start; }
+          .color-header { flex-direction: column; align-items: flex-start; }
+          .color-fields { grid-template-columns: 1fr; }
+          .color-image-row { grid-template-columns: 1fr; }
+          .color-image-row .btn { justify-self: start; }
         }
       `}</style>
     </div>
