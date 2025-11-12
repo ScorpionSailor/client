@@ -30,6 +30,7 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
+import AdminUsersDetails from './pages/AdminUsersDetails';
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/canceled-orders" element={<AdminCanceledOrders />} />
+                <Route path="/admin/users-details" element={<AdminUsersDetails />} />
                 <Route path="/admin/products/new" element={<AddProduct />} />
               </Routes>
             </main>

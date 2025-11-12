@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../config/api';
 import { useContext } from 'react';
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import ProductImageCarousel from '../components/ProductImageCarousel';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -34,6 +35,8 @@ const ProductDetail = () => {
       if (response.data.colors && response.data.colors.length > 0) {
         setSelectedColor(response.data.colors[0].name);
       }
+      setActiveImage(0);
+      setQuantity(1);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Product not found');
@@ -42,11 +45,118 @@ const ProductDetail = () => {
     }
   };
 
+  const handleSizeChange = useCallback((size) => {
+    setSelectedSize(size);
+    setQuantity(1);
+  }, []);
+
+  const handleColorChange = useCallback((color) => {
+    setSelectedColor(color);
+    setActiveImage(0);
+  }, []);
+
+  const getGalleryForColor = useCallback(
+    (chosenColor) => {
+      if (!product) return [];
+
+      const baseGallery = Array.isArray(product.images) ? product.images : [];
+
+      if (!chosenColor) {
+        return baseGallery;
+      }
+
+      const target = chosenColor.toLowerCase();
+
+      const colorEntry = product.colors?.find(
+        (color) => color?.name && color.name.toLowerCase() === target
+      );
+
+      if (colorEntry && Array.isArray(colorEntry.images) && colorEntry.images.length) {
+        return colorEntry.images;
+      }
+
+      const colorSpecificImages = baseGallery.filter(
+        (image) => image?.color && image.color.toLowerCase() === target
+      );
+
+      if (colorSpecificImages.length) {
+        return colorSpecificImages;
+      }
+
+      return baseGallery;
+    },
+    [product]
+  );
+
+  const galleryImages = useMemo(
+    () => getGalleryForColor(selectedColor),
+    [getGalleryForColor, selectedColor]
+  );
+
+  useEffect(() => {
+    setActiveImage(0);
+  }, [galleryImages.length]);
+
+  const findSizeEntry = useCallback(
+    () =>
+      product?.sizes?.find(
+        (size) =>
+          size?.size && selectedSize && size.size.toLowerCase() === selectedSize.toLowerCase()
+      ),
+    [product?.sizes, selectedSize]
+  );
+
+  const availableStock = useMemo(() => {
+    if (!product) return 0;
+
+    const baseStock = typeof product.stock === 'number' ? product.stock : 0;
+    const sizeEntry = findSizeEntry();
+    const sizeStock = typeof sizeEntry?.stock === 'number' ? sizeEntry.stock : null;
+
+    if (sizeEntry) {
+      return Math.max(sizeStock ?? 0, baseStock);
+    }
+
+    if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+      const sizeStocks = product.sizes
+        .map((entry) => (typeof entry.stock === 'number' ? entry.stock : 0))
+        .filter((value) => value > 0);
+
+      if (sizeStocks.length) {
+        return Math.max(baseStock, ...sizeStocks);
+      }
+    }
+
+    return baseStock;
+  }, [findSizeEntry, product]);
+
+  const isOutOfStock = availableStock <= 0;
+
+  useEffect(() => {
+    if (quantity > availableStock && availableStock > 0) {
+      setQuantity(availableStock);
+    }
+    if (availableStock === 0) {
+      setQuantity(1);
+    }
+  }, [availableStock, quantity]);
+
   const handleAddToCart = () => {
     if ((product.sizes && product.sizes.length > 0) && !selectedSize) {
       toast.error('Please select a size');
       return;
     }
+
+    if (isOutOfStock) {
+      toast.error('This product is currently out of stock');
+      return;
+    }
+
+    if (quantity > availableStock) {
+      toast.error(`Only ${availableStock} item(s) available`);
+      return;
+    }
+
     if (!isAuthenticated) {
       // Redirect unauthenticated users to login
       navigate('/login');
@@ -60,6 +170,16 @@ const ProductDetail = () => {
   const handleBuyNow = () => {
     if (product.sizes && product.sizes.length > 0 && !selectedSize) {
       toast.error('Please select a size');
+      return;
+    }
+
+    if (isOutOfStock) {
+      toast.error('This product is currently out of stock');
+      return;
+    }
+
+    if (quantity > availableStock) {
+      toast.error(`Only ${availableStock} item(s) available`);
       return;
     }
 
@@ -97,25 +217,11 @@ const ProductDetail = () => {
       <div className="container">
         <div className="product-detail-grid">
           <div className="product-images">
-            <div className="main-image">
-              <img 
-                src={(product.images && product.images[activeImage]?.url) || '/placeholder.jpg'} 
-                alt={product.name}
-              />
-            </div>
-            {product.images && product.images.length > 1 && (
-              <div className="thumbnail-images">
-                {product.images.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img.url}
-                    alt={`${product.name} ${index + 1}`}
-                    onClick={() => setActiveImage(index)}
-                    className={activeImage === index ? 'active' : ''}
-                  />
-                ))}
-              </div>
-            )}
+            <ProductImageCarousel
+              images={galleryImages}
+              activeIndex={activeImage}
+              onActiveIndexChange={setActiveImage}
+            />
           </div>
 
           <div className="product-info">
@@ -141,6 +247,14 @@ const ProductDetail = () => {
               )}
             </div>
 
+            <div className={`stock-status ${isOutOfStock ? 'out' : 'available'}`}>
+              {isOutOfStock ? (
+                <span>Out of Stock</span>
+              ) : (
+                <span>{availableStock} item{availableStock > 1 ? 's' : ''} available</span>
+              )}
+            </div>
+
             <p className="product-description">{product.description}</p>
 
             {product.sizes && product.sizes.length > 0 && (
@@ -151,7 +265,7 @@ const ProductDetail = () => {
                     <button
                       key={index}
                       className={`size-btn ${selectedSize === size.size ? 'active' : ''}`}
-                      onClick={() => setSelectedSize(size.size)}
+                      onClick={() => handleSizeChange(size.size)}
                       disabled={size.stock === 0}
                     >
                       {size.size}
@@ -168,8 +282,8 @@ const ProductDetail = () => {
                     <button
                       key={index}
                       className={`color-btn ${selectedColor === color.name ? 'active' : ''}`}
-                      onClick={() => setSelectedColor(color.name)}
-                      style={{ backgroundColor: color.name }}
+                      onClick={() => handleColorChange(color.name)}
+                      style={{ backgroundColor: color.hex || color.name }}
                       title={color.name}
                     />
                   ))}
@@ -180,17 +294,44 @@ const ProductDetail = () => {
             <div className="quantity-selection">
               <h3>Quantity</h3>
               <div className="quantity-controls">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
                 <span>{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                <button
+                  onClick={() => {
+                    if (isOutOfStock) return;
+                    if (quantity < availableStock) {
+                      setQuantity(quantity + 1);
+                    } else {
+                      toast.error(`Only ${availableStock} item(s) available`);
+                    }
+                  }}
+                  disabled={isOutOfStock || quantity >= availableStock}
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
               </div>
             </div>
 
             <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
-              <button className="btn btn-neon add-cart-btn" onClick={handleAddToCart}>
+              <button
+                className="btn btn-neon add-cart-btn"
+                onClick={handleAddToCart}
+                disabled={isOutOfStock}
+              >
                 Add to Cart
               </button>
-              <button className="btn btn-pink buy-now-btn" onClick={handleBuyNow}>
+              <button
+                className="btn btn-pink buy-now-btn"
+                onClick={handleBuyNow}
+                disabled={isOutOfStock}
+              >
                 Buy Now
               </button>
             </div>
@@ -218,35 +359,6 @@ const ProductDetail = () => {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 4rem;
-        }
-
-        .main-image img {
-          width: 100%;
-          height: 600px;
-          object-fit: cover;
-          border-radius: 10px;
-        }
-
-        .thumbnail-images {
-          display: flex;
-          gap: 1rem;
-          margin-top: 1rem;
-        }
-
-        .thumbnail-images img {
-          width: 80px;
-          height: 80px;
-          object-fit: cover;
-          border-radius: 5px;
-          cursor: pointer;
-          border: 2px solid transparent;
-          opacity: 0.7;
-        }
-
-        .thumbnail-images img:hover,
-        .thumbnail-images img.active {
-          opacity: 1;
-          border-color: var(--color-neon-green);
         }
 
         .product-title {
@@ -305,6 +417,21 @@ const ProductDetail = () => {
           margin-bottom: 2rem;
         }
 
+        .stock-status {
+          margin-bottom: 1.5rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        .stock-status.available {
+          color: var(--color-neon-green);
+        }
+
+        .stock-status.out {
+          color: var(--color-hot-pink);
+        }
+
         .size-selection h3,
         .color-selection h3,
         .quantity-selection h3 {
@@ -350,7 +477,7 @@ const ProductDetail = () => {
           width: 40px;
           height: 40px;
           border-radius: 50%;
-          border: 3px solid transparent;
+          border: 3px solid var(--color-gray-200);
           cursor: pointer;
           transition: all 0.3s ease;
         }
@@ -378,6 +505,7 @@ const ProductDetail = () => {
           border-radius: 5px;
           cursor: pointer;
           font-size: 20px;
+          transition: background-color 0.3s ease, opacity 0.3s ease;
         }
 
         .quantity-controls span {
@@ -385,6 +513,11 @@ const ProductDetail = () => {
           font-weight: bold;
           min-width: 30px;
           text-align: center;
+        }
+
+        .quantity-controls button:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
         }
 
         .add-cart-btn {
@@ -406,6 +539,11 @@ const ProductDetail = () => {
           margin-bottom: 2rem;
         }
 
+        .action-buttons button:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+
         .buy-now-btn:hover {
           opacity: 0.95;
         }
@@ -422,10 +560,6 @@ const ProductDetail = () => {
         @media (max-width: 968px) {
           .product-detail-grid {
             grid-template-columns: 1fr;
-          }
-
-          .main-image img {
-            height: 400px;
           }
         }
       `}</style>

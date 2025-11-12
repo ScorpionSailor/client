@@ -10,6 +10,16 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [stockModal, setStockModal] = useState({
+    open: false,
+    product: null
+  });
+  const [stockForm, setStockForm] = useState({
+    mode: 'set',
+    quantity: '',
+    sizeUpdates: []
+  });
+  const [savingStock, setSavingStock] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -56,6 +66,120 @@ const AdminDashboard = () => {
     }
   };
 
+  const openStockManager = (product) => {
+    const sizeUpdates = (product.sizes || []).map((size) => ({
+      size: size.size,
+      stock: typeof size.stock === 'number' ? String(size.stock) : ''
+    }));
+
+    setStockForm({
+      mode: 'set',
+      quantity: '',
+      sizeUpdates
+    });
+    setStockModal({
+      open: true,
+      product
+    });
+  };
+
+  const closeStockManager = () => {
+    if (savingStock) return;
+    setStockModal({
+      open: false,
+      product: null
+    });
+    setStockForm({
+      mode: 'set',
+      quantity: '',
+      sizeUpdates: []
+    });
+  };
+
+  const handleStockQuantityChange = (value) => {
+    const sanitized = value === '' ? '' : Number(value);
+    if (sanitized === '' || Number.isFinite(sanitized)) {
+      setStockForm((prev) => ({
+        ...prev,
+        quantity: value
+      }));
+    }
+  };
+
+  const handleSizeStockChange = (index, value) => {
+    setStockForm((prev) => {
+      const next = [...prev.sizeUpdates];
+      next[index] = {
+        ...next[index],
+        stock: value
+      };
+      return {
+        ...prev,
+        sizeUpdates: next
+      };
+    });
+  };
+
+  const handleStockModeChange = (mode) => {
+    setStockForm((prev) => ({
+      ...prev,
+      mode
+    }));
+  };
+
+  const submitStockUpdate = async () => {
+    if (!stockModal.product) return;
+
+    const payload = {};
+
+    if (stockForm.quantity !== '') {
+      const numericValue = Number(stockForm.quantity);
+      if (!Number.isFinite(numericValue)) {
+        toast.error('Enter a valid quantity');
+        return;
+      }
+      if (stockForm.mode === 'set') {
+        if (numericValue < 0) {
+          toast.error('Quantity cannot be negative');
+          return;
+        }
+        payload.newStock = numericValue;
+      } else if (stockForm.mode === 'increment') {
+        payload.delta = numericValue;
+      }
+    }
+
+    const sizeStockUpdates = stockForm.sizeUpdates
+      .filter((entry) => entry.size && entry.stock !== '')
+      .map((entry) => ({
+        size: entry.size,
+        stock: Number(entry.stock)
+      }))
+      .filter((entry) => Number.isFinite(entry.stock) && entry.stock >= 0);
+
+    if (sizeStockUpdates.length) {
+      payload.sizeStockUpdates = sizeStockUpdates;
+    }
+
+    if (!payload.newStock && !payload.delta && !payload.sizeStockUpdates) {
+      toast.error('Provide at least one stock adjustment');
+      return;
+    }
+
+    try {
+      setSavingStock(true);
+      await api.patch(`/admin/products/${stockModal.product._id}/stock`, payload);
+      toast.success('Stock updated successfully');
+      closeStockManager();
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Stock update error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update stock');
+    } finally {
+      setSavingStock(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="container">
@@ -91,6 +215,7 @@ const AdminDashboard = () => {
               <div className="stat-card">
                 <h3>Total Users</h3>
                 <p>{stats.totalUsers}</p>
+                <button className='view-all-btn' style={{ marginTop: '1rem' }} onClick={()=> navigate('/admin/users-details')}></button>
               </div>
               <div className="stat-card">
                 <h3>Orders Cancelled</h3>
@@ -158,19 +283,111 @@ const AdminDashboard = () => {
                   <h4>{product.name}</h4>
                   <p>{product.category} • {product.type}</p>
                 </div>
-                <span>₹{product.price}</span>
-                <button 
-                  className="btn-delete" 
-                  onClick={() => handleDeleteProduct(product._id)}
-                  title="Delete product"
-                >
-                  Delete
-                </button>
+                <div className="stock-block">
+                  <span className="stock-count">Stock: {typeof product.stock === 'number' ? product.stock : 0}</span>
+                  <span className={`stock-badge ${product.inStock ? 'in-stock' : 'out-stock'}`}>
+                    {product.inStock ? 'Available' : 'Out of Stock'}
+                  </span>
+                </div>
+                <span className="price-cell">₹{product.price}</span>
+                <div className="product-actions">
+                  <button
+                    className="btn-manage-stock"
+                    onClick={() => openStockManager(product)}
+                  >
+                    Manage Stock
+                  </button>
+                  <button 
+                    className="btn-delete" 
+                    onClick={() => handleDeleteProduct(product._id)}
+                    title="Delete product"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {stockModal.open && stockModal.product && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h3>Manage Stock</h3>
+            <p className="modal-subtitle">{stockModal.product.name}</p>
+            <div className="modal-section">
+              <span className="label">Current Stock:</span>
+              <strong>{typeof stockModal.product.stock === 'number' ? stockModal.product.stock : 0}</strong>
+            </div>
+            <div className="stock-mode-group">
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="stockMode"
+                  value="set"
+                  checked={stockForm.mode === 'set'}
+                  onChange={() => handleStockModeChange('set')}
+                />
+                <span>Set exact quantity</span>
+              </label>
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="stockMode"
+                  value="increment"
+                  checked={stockForm.mode === 'increment'}
+                  onChange={() => handleStockModeChange('increment')}
+                />
+                <span>Add/remove quantity</span>
+              </label>
+            </div>
+            <div className="modal-section">
+              <label>
+                {stockForm.mode === 'set' ? 'New stock quantity' : 'Quantity to add/remove'}
+              </label>
+              <input
+                type="number"
+                min={stockForm.mode === 'set' ? 0 : undefined}
+                value={stockForm.quantity}
+                onChange={(e) => handleStockQuantityChange(e.target.value)}
+                placeholder={stockForm.mode === 'set' ? 'Enter new total stock' : 'Enter positive or negative value'}
+              />
+              {stockForm.mode === 'increment' && (
+                <small className="hint">Use negative values to decrease stock.</small>
+              )}
+            </div>
+
+            {stockForm.sizeUpdates.length > 0 && (
+              <div className="modal-section size-section">
+                <label>Size-level stock</label>
+                <div className="size-grid">
+                  {stockForm.sizeUpdates.map((entry, index) => (
+                    <div key={entry.size || index} className="size-row">
+                      <span className="size-name">{entry.size}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={entry.stock}
+                        onChange={(e) => handleSizeStockChange(index, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <button className="btn secondary" onClick={closeStockManager} disabled={savingStock}>
+                Cancel
+              </button>
+              <button className="btn primary" onClick={submitStockUpdate} disabled={savingStock}>
+                {savingStock ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .admin-page {
@@ -337,7 +554,7 @@ const AdminDashboard = () => {
         
         .product-row {
           display: grid;
-          grid-template-columns: 80px 1fr auto auto;
+          grid-template-columns: 80px 1fr auto auto auto;
           gap: 2rem;
           align-items: center;
           padding: 1.5rem;
@@ -359,6 +576,62 @@ const AdminDashboard = () => {
           font-size: 18px;
         }
 
+        .stock-block {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+          align-items: flex-start;
+        }
+
+        .stock-count {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--color-gray-700);
+        }
+
+        .stock-badge {
+          padding: 0.35rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        .stock-badge.in-stock {
+          background-color: rgba(34, 197, 94, 0.15);
+          color: #15803d;
+        }
+
+        .stock-badge.out-stock {
+          background-color: rgba(236, 72, 153, 0.15);
+          color: var(--color-hot-pink);
+        }
+
+        .price-cell {
+          font-weight: 700;
+        }
+
+        .product-actions {
+          display: flex;
+          gap: 0.75rem;
+        }
+
+        .btn-manage-stock {
+          background-color: var(--color-electric-blue);
+          color: var(--color-white);
+          border: none;
+          padding: 8px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: opacity 0.3s ease;
+        }
+
+        .btn-manage-stock:hover {
+          opacity: 0.85;
+        }
+
         .btn-delete {
           background-color: var(--color-hot-pink);
           color: var(--color-white);
@@ -374,6 +647,128 @@ const AdminDashboard = () => {
           opacity: 0.8;
         }
 
+        .modal-backdrop {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0, 0, 0, 0.45);
+          z-index: 1000;
+          padding: 1.5rem;
+        }
+
+        .modal-card {
+          width: min(520px, 100%);
+          background: var(--color-white);
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: var(--shadow-lg);
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .modal-card h3 {
+          margin: 0;
+          font-size: 1.5rem;
+          font-family: var(--font-bold);
+        }
+
+        .modal-subtitle {
+          margin: 0;
+          color: var(--color-gray-500);
+        }
+
+        .modal-section {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .modal-section label {
+          font-weight: 600;
+          color: var(--color-gray-600);
+        }
+
+        .modal-section input {
+          padding: 0.75rem;
+          border-radius: 8px;
+          border: 1px solid var(--color-gray-300);
+          font-size: 1rem;
+        }
+
+        .stock-mode-group {
+          display: flex;
+          gap: 1.5rem;
+        }
+
+        .radio-option {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .radio-option input {
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+        }
+
+        .hint {
+          color: var(--color-gray-500);
+          font-size: 0.8rem;
+        }
+
+        .size-section {
+          gap: 0.75rem;
+        }
+
+        .size-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem 1rem;
+        }
+
+        .size-row {
+          display: contents;
+        }
+
+        .size-name {
+          font-weight: 600;
+          color: var(--color-gray-600);
+          align-self: center;
+        }
+
+        .size-row input {
+          width: 100%;
+        }
+
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+        }
+
+        .modal-actions .btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+        }
+
+        .modal-actions .btn.primary {
+          background-color: var(--color-neon-green);
+          color: var(--color-black);
+        }
+
+        .modal-actions .btn.secondary {
+          background-color: var(--color-gray-200);
+          color: var(--color-black);
+        }
+
         @media (max-width: 768px) {
           .stats-grid {
             grid-template-columns: 1fr;
@@ -381,11 +776,35 @@ const AdminDashboard = () => {
 
           .product-row {
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 1.5rem;
           }
 
-          .btn-delete {
-            justify-self: start;
+          .product-row img {
+            width: 100%;
+            height: 180px;
+          }
+
+          .stock-block {
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+          }
+
+          .product-actions {
+            flex-direction: column;
+          }
+
+          .modal-card {
+            padding: 1.5rem;
+          }
+
+          .stock-mode-group {
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+
+          .size-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>

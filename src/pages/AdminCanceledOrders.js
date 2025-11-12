@@ -45,7 +45,7 @@ const AdminCanceledOrders = () => {
   return (
     <div className="admin-page">
       <div className="container">
-        <h1 className="page-title">Orders Cancelled by Users</h1>
+        <h1 className="page-title" style={{ marginTop: '1.5rem  '}}>Orders Cancelled by Users</h1>
 
         <div style={{ marginBottom: '1.5rem' }}>
           <Link to="/admin" className="btn-back">
@@ -92,7 +92,7 @@ const AdminCanceledOrders = () => {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .page-title { font-size: 36px; margin-bottom: 1rem; }
         .order-card { background: var(--color-white); padding: 1.5rem; border-radius: 10px; box-shadow: var(--shadow-md); margin-bottom: 1rem; }
         .order-header { display:flex; justify-content:space-between; align-items:center; }
