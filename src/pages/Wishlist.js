@@ -55,29 +55,29 @@ const Wishlist = () => {
         <h1 className="Wishlist-title">Shopping Wishlist</h1>
         
         <div className="Wishlist-layout">
-          <Link to={`product/${product._id}`} className="Wishlist-items">
             {wishlist.map((item, index) => (
-              <div key={item.product._id || index} className="Wishlist-item">
-                <img 
-                  src={(item.product.images && item.product.images[0]?.url) || '/placeholder.jpg'}
-                  alt={item.product.name}
-                  className="Wishlist-item-image"
-                />
-                <div className="Wishlist-item-details">
-                  <h3>{item.product.name}</h3>
-                  <p className="Wishlist-item-price">₹{item.product.price}</p>
+              <Link to={`product/${item.product._id}`} className="Wishlist-items">
+                <div key={item.product._id || index} className="Wishlist-item">
+                  <img 
+                    src={(item.product.images && item.product.images[0]?.url) || '/placeholder.jpg'}
+                    alt={item.product.name}
+                    className="Wishlist-item-image"
+                  />
+                  <div className="Wishlist-item-details">
+                    <h3>{item.product.name}</h3>
+                    <p className="Wishlist-item-price">₹{item.product.price}</p>
+                  </div>
+                  <div className="Wishlist-item-actions">
+                    <button className="remove-btn" onClick={() => removeFromWishlist(item.product._id ?? index)}>
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                  <div className="Wishlist-item-total">
+                    ₹{item.product.price}
+                  </div>
                 </div>
-                <div className="Wishlist-item-actions">
-                  <button className="remove-btn" onClick={() => removeFromWishlist(item.product._id ?? index)}>
-                    <FiTrash2 />
-                  </button>
-                </div>
-                <div className="Wishlist-item-total">
-                  ₹{item.product.price}
-                </div>
-              </div>
+              </Link>
             ))}
-          </Link>
 
           <div className="Wishlist-summary">
             <h3>Wishlist Summary</h3>
