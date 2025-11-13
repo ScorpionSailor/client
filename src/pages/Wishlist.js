@@ -55,7 +55,7 @@ const Wishlist = () => {
         <h1 className="Wishlist-title">Shopping Wishlist</h1>
         
         <div className="Wishlist-layout">
-          <Link className="Wishlist-items">
+          <Link to={`product/${product._id}`} className="Wishlist-items">
             {wishlist.map((item, index) => (
               <div key={item.product._id || index} className="Wishlist-item">
                 <img 
@@ -129,7 +129,18 @@ const Wishlist = () => {
           align-items: center;
           padding: 1.5rem;
           border-bottom: 1px solid var(--color-gray-200);
+          text-decoration: none;
+          color: inherit;
           background-color: var(--color-white);
+          border-radius: 10px;
+          overflow: hidden;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          cursor: pointer;
+        }
+
+        .Wishlist-item:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--shadow-lg);
         }
 
         .Wishlist-item-image {
@@ -137,6 +148,11 @@ const Wishlist = () => {
           height: 120px;
           object-fit: cover;
           border-radius: 10px;
+          transition: transform 0.3s ease;
+        }
+
+        .Wishlist-item:hover .Wishlist-item-image {
+          transform: scale(1.05);
         }
 
         .Wishlist-item-details h3 {
