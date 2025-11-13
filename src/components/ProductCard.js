@@ -1,27 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiShoppingCart } from 'react-icons/fi';
+import { FiHeart } from 'react-icons/fi';
 import { useContext } from 'react';
-import { CartContext } from '../context/CartContext';
+import { WishlistContext } from '../context/WishlistContext';
 import toast from 'react-hot-toast';
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useContext(CartContext);
+  const { addToWishlist } = useContext(WishlistContext);
 
-  const handleAddToCart = (e) => {
+  const handleAddToWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!product.sizes || product.sizes.length === 0) {
-      toast.error('No sizes available');
-      return;
-    }
-
-    const defaultSize = product.sizes[0].size;
-    const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'default';
-    
-    addToCart(product, defaultSize, defaultColor, 1);
-    toast.success('Added to cart!');
+    addToWishlist(product);
+    toast.success('Added to wishlist ❤️!');
   };
 
   return (
@@ -39,8 +31,8 @@ const ProductCard = ({ product }) => {
             {product.newArrival && <span className="product-badge new">New</span>}
           </div>
           
-          <button className="add-to-cart-btn" onClick={handleAddToCart}>
-            <FiShoppingCart />
+          <button className="add-to-wishlist-btn" onClick={handleAddToWishlist}>
+            <FiHeart />
           </button>
         </div>
         
@@ -127,7 +119,7 @@ const ProductCard = ({ product }) => {
           color: var(--color-black);
         }
 
-        .add-to-cart-btn {
+        .add-to-wishlist-btn {
           position: absolute;
           bottom: 10px;
           right: 10px;

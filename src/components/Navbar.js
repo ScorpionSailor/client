@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
-import { FiShoppingCart, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { FiShoppingCart, FiHeart, FiLogOut, FiLogIn, FiUser, FiMenu, FiX } from 'react-icons/fi';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,26 +53,29 @@ const Navbar = () => {
                     Admin
                   </Link>
                 )}
+                {user?.role === 'user' && (
+                  <Link to="/cart" className="navbar-icon cart-icon" onClick={() => setIsOpen(false)}>
+                    <FiShoppingCart />
+                    {getTotalItems() > 0 && (
+                      <span className="cart-badge">{getTotalItems()}</span>
+                    )}
+                  </Link>
+                )}
+                {user?.role === 'user' && (
+                  <Link to="/wishlist" className='navbar-icon' onClick={() => setIsOpen(false)}>
+                    <FiHeart />
+                  </Link>
+                )}
                 <button className="navbar-link logout-btn" onClick={handleLogout}>
-                  Logout
+                  <FiLogOut />
                 </button>
               </>
             ) : (
               <Link to="/login" className="navbar-link" onClick={() => setIsOpen(false)}>
-                Login
+                <FiLogIn />
               </Link>
             )}
             
-            {
-              user?.role === 'user' && (
-                <Link to="/cart" className="navbar-icon cart-icon" onClick={() => setIsOpen(false)}>
-                  <FiShoppingCart />
-                  {getTotalItems() > 0 && (
-                    <span className="cart-badge">{getTotalItems()}</span>
-                  )}
-                </Link>
-              )
-            }
           </div>
         </div>
 
