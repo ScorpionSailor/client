@@ -32,13 +32,13 @@ import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import AdminUsersDetails from './pages/AdminUsersDetails';
 import Wishlist from './pages/Wishlist';
-import { WishlistContext } from './context/WishlistContext';
+import { WishlistContext, WishlistProvider } from './context/WishlistContext';
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <WishlistContext>
+        <WishlistProvider>
           <Router>
             <div className="App">
               <ScrollToTop behavior='auto' />
@@ -84,7 +84,7 @@ function App() {
               />
             </div>
           </Router>
-        </WishlistContext>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );
