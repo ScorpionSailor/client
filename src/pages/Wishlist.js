@@ -55,7 +55,7 @@ const Wishlist = () => {
         <h1 className="Wishlist-title">Shopping Wishlist</h1>
         
         <div className="Wishlist-layout">
-          <div className="Wishlist-items">
+          <Link className="Wishlist-items">
             {wishlist.map((item, index) => (
               <div key={item.product._id || index} className="Wishlist-item">
                 <img 
@@ -77,10 +77,10 @@ const Wishlist = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </Link>
 
           <div className="Wishlist-summary">
-            <h3>Order Summary</h3>
+            <h3>Wishlist Summary</h3>
             <div className="summary-row">
               <span>Subtotal</span>
               <span>₹{subtotal.toFixed(2)}</span>
@@ -97,9 +97,6 @@ const Wishlist = () => {
               <span>Total</span>
               <span>₹{total.toFixed(2)}</span>
             </div>
-            <Link to="/checkout" className="btn btn-neon checkout-btn">
-              Proceed to Checkout
-            </Link>
             <button className="btn btn-outline" onClick={clearWishlist} style={{ width: '100%', marginTop: '1rem' }}>
               Clear Wishlist
             </button>
@@ -132,6 +129,7 @@ const Wishlist = () => {
           align-items: center;
           padding: 1.5rem;
           border-bottom: 1px solid var(--color-gray-200);
+          background-color: var(--color-white);
         }
 
         .Wishlist-item-image {
