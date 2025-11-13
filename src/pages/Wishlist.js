@@ -62,7 +62,7 @@ const Wishlist = () => {
               const id = product._id || index;
               return (
                 <Link
-                  to={`product/${id}`}
+                  to={`/product/${id}`}
                   key={id}
                   className="Wishlist-item-link"
                 >
