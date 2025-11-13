@@ -321,14 +321,14 @@ const ProductDetail = () => {
 
             <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
               <button
-                className="btn btn-neon add-cart-btn"
+                className="btn btn-pink add-cart-btn"
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
               >
                 Add to Cart
               </button>
               <button
-                className="btn btn-pink buy-now-btn"
+                className="btn btn-neon buy-now-btn"
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
               >
@@ -527,7 +527,7 @@ const ProductDetail = () => {
           margin-bottom: 2rem;
         }
 
-        .action-buttons .add-cart-btn ,.buy-now-btn {
+        .action-buttons .add-cart-btn .buy-now-btn {
           width: auto;
           flex: 1;
         }
@@ -542,10 +542,6 @@ const ProductDetail = () => {
         .action-buttons button:disabled {
           cursor: not-allowed;
           opacity: 0.6;
-        }
-
-        .buy-now-btn:hover {
-          opacity: 0.95;
         }
 
         .product-details ul {
