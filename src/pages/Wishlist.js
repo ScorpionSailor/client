@@ -91,10 +91,6 @@ const Wishlist = () => {
                         <FiTrash2 />
                       </button>
                     </div>
-
-                    <div className="Wishlist-item-total">
-                      ₹{product.price ?? '0'}
-                    </div>
                   </div>
                 </Link>
               );
