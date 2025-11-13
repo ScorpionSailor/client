@@ -7,9 +7,9 @@ export const WishlistProvider = ({ children }) => {
 
   // Load wishlist from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('wishlist');
-    if (savedCart) {
-      setWishlist(JSON.parse(savedCart));
+    const savedWishlist = localStorage.getItem('wishlist');
+    if (savedWishlist) {
+      setWishlist(JSON.parse(savedWishlist));
     }
   }, []);
 

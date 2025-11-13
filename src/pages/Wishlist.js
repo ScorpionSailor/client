@@ -5,9 +5,9 @@ import { WishlistContext } from '../context/WishlistContext';
 import { FiTrash2 } from 'react-icons/fi';
 
 const Wishlist = () => {
-  const { Wishlist, removeFromWishlist, getTotalPrice, clearWishlist } = useContext(WishlistContext);
+  const { wishlist, removeFromWishlist, getTotalPrice, clearWishlist } = useContext(WishlistContext);
 
-  if (Wishlist.length === 0) {
+  if (wishlist.length === 0) {
     return (
       <div className="Wishlist-page">
         <div className="container">
@@ -56,8 +56,8 @@ const Wishlist = () => {
         
         <div className="Wishlist-layout">
           <div className="Wishlist-items">
-            {Wishlist.map((item, index) => (
-              <div key={index} className="Wishlist-item">
+            {wishlist.map((item, index) => (
+              <div key={product._id || index} className="Wishlist-item">
                 <img 
                   src={(item.product.images && item.product.images[0]?.url) || '/placeholder.jpg'}
                   alt={item.product.name}
@@ -68,7 +68,7 @@ const Wishlist = () => {
                   <p className="Wishlist-item-price">₹{item.product.price}</p>
                 </div>
                 <div className="Wishlist-item-actions">
-                  <button className="remove-btn" onClick={() => removeFromWishlist(index)}>
+                  <button className="remove-btn" onClick={() => removeFromWishlist(product._id ?? index)}>
                     <FiTrash2 />
                   </button>
                 </div>

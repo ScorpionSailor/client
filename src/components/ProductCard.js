@@ -139,12 +139,12 @@ const ProductCard = ({ product }) => {
           transition: all 0.3s ease;
         }
 
-        .product-card:hover .add-to-cart-btn {
+        .product-card:hover .add-to-wishlist-btn {
           opacity: 1;
           transform: translateY(0);
         }
 
-        .add-to-cart-btn:hover {
+        .add-to-wishlist-btn:hover {
           background-color: var(--color-neon-green);
           color: var(--color-black);
           box-shadow: var(--shadow-neon-green);
