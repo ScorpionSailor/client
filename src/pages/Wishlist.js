@@ -57,7 +57,7 @@ const Wishlist = () => {
         <div className="Wishlist-layout">
           <div className="Wishlist-items">
             {wishlist.map((item, index) => (
-              <div key={product._id || index} className="Wishlist-item">
+              <div key={item.product._id || index} className="Wishlist-item">
                 <img 
                   src={(item.product.images && item.product.images[0]?.url) || '/placeholder.jpg'}
                   alt={item.product.name}
@@ -68,7 +68,7 @@ const Wishlist = () => {
                   <p className="Wishlist-item-price">₹{item.product.price}</p>
                 </div>
                 <div className="Wishlist-item-actions">
-                  <button className="remove-btn" onClick={() => removeFromWishlist(product._id ?? index)}>
+                  <button className="remove-btn" onClick={() => removeFromWishlist(item.product._id ?? index)}>
                     <FiTrash2 />
                   </button>
                 </div>
