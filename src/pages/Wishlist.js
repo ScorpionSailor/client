@@ -215,7 +215,7 @@ const Wishlist = () => {
           cursor: pointer;
           font-size: 18px;
           color: var(--color-gray-600);
-          padding: 6px;
+          padding: 16px;
           border-radius: 6px;
           transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
         }
